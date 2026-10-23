@@ -1,0 +1,657 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Stress Buddy Circuit</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#ecebf1;--panel:#f8f7fb;--ink:#241d2e;--muted:#6a6275;--line:#d3cfdb;--accent:#a3295b;--accent-ink:#fff;--hr:#1f7a8c;--gsr:#c27a12;--red:#c8372d;--grn:#2a9d57;--amb:#d99a00;--wire:#241d2e;--s1:#f4f1f8;--s2:#cfc8dc;--f:"Outfit","Segoe UI",sans-serif;--m:"DM Mono",ui-monospace,Menlo,monospace}
+@media (prefers-color-scheme:dark){:root{--bg:#15111b;--panel:#1f1927;--ink:#ece7f2;--muted:#a69db3;--line:#382f45;--accent:#e0679a;--accent-ink:#1a0d14;--hr:#5cc0d2;--gsr:#e8a53c;--red:#ff6a5c;--grn:#5fd68a;--amb:#f0b429;--wire:#ece7f2;--s1:#2b2237;--s2:#17121e;color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--f);padding:max(20px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left))}
+a{color:var(--accent)}
+.wrap{max-width:1180px;margin:0 auto;display:grid;gap:16px;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);grid-template-areas:"h h" "st ct";align-items:start}
+header{grid-area:h}
+h1{margin:0;font-size:30px;line-height:1.1;font-weight:600;letter-spacing:-.01em}
+.sub{margin:4px 0 0;color:var(--muted)}
+h2{font-size:15px;font-weight:600;margin:0 0 8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.st{grid-area:st;display:grid;gap:10px;min-width:0}
+.bar2{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.stage{position:relative;aspect-ratio:4/3;min-height:320px;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:radial-gradient(120% 100% at 50% 0,var(--s1),var(--s2))}
+#v3,#v2{position:absolute;inset:0}
+#v3 canvas{display:block;width:100%;height:100%;touch-action:none;cursor:grab}
+#v3 canvas:active{cursor:grabbing}
+#v2 svg{width:100%;height:100%;display:block}
+#m3{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.mk3{position:absolute;left:0;top:0;display:flex;align-items:center;gap:6px;margin:-12px 0 0 -12px;padding:0 9px 0 0;height:24px;border-radius:12px;border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 88%,transparent);color:var(--ink);font:500 12px var(--f);cursor:pointer;pointer-events:auto;white-space:nowrap}
+.mk3 i{flex:none;width:24px;height:24px;margin:-1px 0 -1px -1px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:600 12px/24px var(--f);text-align:center;font-style:normal}
+#m3.nn .mk3{padding:0;background:transparent;border:0}
+#m3.nn .mk3 span{display:none}
+#m3.nn .mk3.sel span{display:inline}
+.mk3.sel{outline:3px solid var(--amb);outline-offset:1px}
+.hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted);pointer-events:none}
+.info{min-height:62px}
+.info b{font-weight:600}
+.info p{margin:2px 0 0;color:var(--muted)}
+.ct{grid-area:ct;display:grid;gap:16px;min-width:0}
+.sw{display:flex;align-items:center;gap:10px;padding:8px 0;cursor:pointer;border-top:1px solid var(--line)}
+.sw:first-of-type{border-top:0}
+.sw.dis{opacity:.45;pointer-events:none}
+.sw input{position:absolute;opacity:0;width:1px;height:1px}
+.tr{flex:none;width:40px;height:22px;border-radius:11px;background:var(--line);position:relative;transition:background .15s}
+.tr::after{content:"";position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:var(--panel);box-shadow:0 1px 2px rgba(0,0,0,.35);transition:transform .15s}
+.sw input:checked+.tr{background:var(--accent)}
+.sw input:checked+.tr::after{transform:translateX(18px)}
+.sw input:focus-visible+.tr{outline:2px solid var(--accent);outline-offset:2px}
+.sw span.n{flex:1}
+.sw small{display:block;color:var(--muted);font-size:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg button{border:0;background:transparent;color:var(--ink);font:500 13px var(--f);padding:8px 18px;cursor:pointer;min-height:36px}
+.seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink)}
+.btn{font:500 13px var(--f);color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer;min-height:34px}
+.btn:hover{border-color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sl label{display:flex;justify-content:space-between;font-weight:500}
+.sl output{font-family:var(--m)}
+input[type=range]{width:100%;accent-color:var(--accent);margin:6px 0 0}
+.m{display:grid;grid-template-columns:78px 1fr 92px;gap:10px;align-items:center;margin:10px 0}
+.bar{height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--c)}
+.m b{font:500 13px var(--m);text-align:right}
+.lgd{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px}
+.lgd button{display:flex;gap:8px;align-items:center;width:100%;text-align:left;border:0;background:transparent;color:var(--ink);font:13px var(--f);padding:3px 0;cursor:pointer}
+.lgd i{flex:none;width:20px;height:20px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font:600 11px/20px var(--f);text-align:center;font-style:normal}
+.lgd li.sel button{font-weight:600}
+.w{fill:none;stroke:var(--wire);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.f{fill:none;stroke:var(--accent);stroke-width:2.5;stroke-linecap:round;stroke-dasharray:5 7;animation:fl .5s linear infinite;opacity:0}
+@keyframes fl{to{stroke-dashoffset:-12}}
+.blk{fill:var(--panel);stroke:var(--wire);stroke-width:2}
+#v2 text{font:500 12px var(--m);fill:var(--ink)}
+#v2 .net{fill:var(--muted)}
+#v2 .ttl{font:600 13px var(--f)}
+.mk{cursor:pointer}
+.mk circle{fill:var(--accent);stroke:var(--panel);stroke-width:2}
+.mk text{fill:var(--accent-ink)!important;font:600 12px var(--f)!important;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.mk.sel circle{stroke:var(--amb);stroke-width:5}
+@media (max-width:820px){.wrap{grid-template-columns:minmax(0,1fr);grid-template-areas:"h" "st" "ct"}}
+@media (prefers-reduced-motion:reduce){.tr,.tr::after{transition:none}.f{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header><h1>Stress Buddy Circuit</h1></header>
+
+<div class="st">
+  <div class="bar2">
+    <div class="seg" id="vw"><button data-v="fig" aria-pressed="false">Figure</button><button data-v="3d" aria-pressed="true">3D</button><button data-v="2d" aria-pressed="false">2D</button></div>
+    <button class="btn" id="rv">Overview</button>
+  </div>
+  <div class="stage" id="stage">
+    <div id="v3"><div id="m3"></div></div>
+    <div id="v2" hidden><svg viewBox="0 0 760 570" role="img" aria-label="Circuit schematic" id="sv"></svg></div>
+    <div class="hint" id="hint">Drag to rotate, scroll to zoom, click a part to focus</div>
+  </div>
+  <div class="card info" id="info"></div>
+</div>
+
+<div class="ct">
+  <div class="card">
+    <h2>Switches</h2>
+    <label class="sw"><input type="checkbox" id="pw" checked><span class="tr"></span><span class="n">Power<small>Arduino and LCD</small></span></label>
+    <label class="sw"><input type="checkbox" id="ft" checked><span class="tr"></span><span class="n">Finger on sensors<small>Contact with the hand</small></span></label>
+    <label class="sw"><input type="checkbox" id="sb"><span class="tr"></span><span class="n">TinkerCAD substitutes<small>Force sensor and soil moisture</small></span></label>
+    <label class="sw" id="nsw"><input type="checkbox" id="nm" checked><span class="tr"></span><span class="n">Part names<small>3D labels</small></span></label>
+    <label class="sw" id="wsw"><input type="checkbox" id="wr" checked><span class="tr"></span><span class="n">Jumper wires<small>3D view</small></span></label>
+    <label class="sw dis" id="wmsw"><input type="checkbox" id="wm" checked><span class="tr"></span><span class="n">Show woman<small>Figure view</small></span></label>
+    <div class="sl" style="margin-top:8px"><label for="rc">Body response <output id="rco">3</output></label><input type="range" id="rc" min="0" max="10" step="1" value="3"></div>
+  </div>
+  <div class="card" id="scard" hidden>
+    <h2>Session</h2>
+    <div class="seg" style="display:flex"><button id="pb" style="flex:1" aria-pressed="false">Baseline</button><button id="pe" style="flex:1" aria-pressed="true">Exposure</button></div>
+    <div style="margin-top:10px"><button class="btn" id="nx">Next statement</button></div>
+  </div>
+  <div class="card">
+    <h2>Readings</h2>
+    <div class="m"><span>Heart rate</span><div class="bar"><i id="bh" style="--c:var(--hr)"></i></div><b id="vh">--</b></div>
+    <div class="m"><span id="gl">GSR</span><div class="bar"><i id="bg" style="--c:var(--gsr)"></i></div><b id="vg">--</b></div>
+    <div class="m"><span>Sweat</span><div class="bar"><i id="bs" style="--c:#3b8fd9"></i></div><b id="vs">0%</b></div>
+    <div class="m"><span>Stress</span><div class="bar"><i id="bx" style="--c:var(--accent)"></i></div><b id="vx">--</b></div>
+  </div>
+  <div class="card" id="pcard"><h2>Parts</h2><ul class="lgd" id="lgd"></ul></div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),T=THREE;
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const S={on:1,ct:1,sub:0,wm:1,ph:'exp',st:0,sw:8,x:3,vw:'3d',bpm:70.04,gsr:1.652,ix:0,t:0,beat:0,fl:0,sel:0};
+const B0=70.04,G0=1.652,RAW=110;
+const calm=matchMedia('(prefers-reduced-motion:reduce)').matches;
+
+/* ---------- renderer, light, environment ---------- */
+let renderer=null;
+try{renderer=new T.WebGLRenderer({antialias:true,alpha:true});
+  renderer.outputEncoding=T.sRGBEncoding;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.1;
+  renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));$('#v3').prepend(renderer.domElement)}catch(e){renderer=null}
+const AN=renderer?renderer.capabilities.getMaxAnisotropy():1;
+const scene=new T.Scene(),cam=new T.PerspectiveCamera(38,4/3,.5,300);
+const V=(x,y,z)=>new T.Vector3(x,y,z);
+if(renderer){
+  const es=new T.Scene(),gc=document.createElement('canvas');gc.width=16;gc.height=256;
+  const g=gc.getContext('2d'),gr=g.createLinearGradient(0,0,0,256);gr.addColorStop(0,'#dfe6f2');gr.addColorStop(.5,'#8e96a8');gr.addColorStop(1,'#2b2a33');g.fillStyle=gr;g.fillRect(0,0,16,256);
+  es.add(new T.Mesh(new T.SphereGeometry(80,24,16),new T.MeshBasicMaterial({map:new T.CanvasTexture(gc),side:T.BackSide})));
+  [[20,30,20,14,8],[-30,24,6,8,14],[0,18,-34,22,6]].forEach(([x,y,z,w,h])=>{const p=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({side:T.DoubleSide}));p.material.color.setRGB(7,7,7);p.position.set(x,y,z);p.lookAt(0,0,0);es.add(p)});
+  const pm=new T.PMREMGenerator(renderer);scene.environment=pm.fromScene(es,.03).texture;
+}
+scene.add(new T.HemisphereLight(0xffffff,0x6c6a78,.35));
+const key=new T.DirectionalLight(0xffffff,1.5);key.position.set(14,30,22);key.castShadow=true;
+key.shadow.mapSize.set(2048,2048);Object.assign(key.shadow.camera,{left:-26,right:26,top:26,bottom:-26,near:5,far:90});key.shadow.bias=-.0004;key.shadow.normalBias=.03;
+scene.add(key);
+
+/* ---------- helpers ---------- */
+const M=(c,o)=>new T.MeshStandardMaterial(Object.assign({color:c,roughness:.55,metalness:0},o));
+const GOLD=M(0xd9b24c,{metalness:1,roughness:.22}),STEEL=M(0xcdd1d6,{metalness:1,roughness:.27}),BLK=M(0x131316,{roughness:.42});
+const add=(p,g,m,x,y,z)=>{const o=new T.Mesh(g,m);o.position.set(x||0,y||0,z||0);p.add(o);return o};
+const bx=(p,w,h,d,m,x,y,z)=>add(p,new T.BoxGeometry(w,h,d),m,x,y,z);
+const cy=(p,r,h,m,x,y,z,s)=>add(p,new T.CylinderGeometry(r,r,h,s||24),m,x,y,z);
+function rbox(p,w,h,d,r,m,x,y,z,hs,b){b=b||.03;
+  const sh=new T.Shape(),W=w/2-b,D=d/2-b,R=Math.max(.001,r-b);
+  sh.moveTo(-W+R,-D);sh.lineTo(W-R,-D);sh.quadraticCurveTo(W,-D,W,-D+R);sh.lineTo(W,D-R);sh.quadraticCurveTo(W,D,W-R,D);
+  sh.lineTo(-W+R,D);sh.quadraticCurveTo(-W,D,-W,D-R);sh.lineTo(-W,-D+R);sh.quadraticCurveTo(-W,-D,-W+R,-D);
+  (hs||[]).forEach(q=>{const pa=new T.Path();pa.absarc(q[0],-q[1],q[2],0,Math.PI*2,true);sh.holes.push(pa)});
+  const g=new T.ExtrudeGeometry(sh,{depth:h-2*b,bevelEnabled:true,bevelThickness:b,bevelSize:b,bevelSegments:3,curveSegments:10});
+  g.rotateX(-Math.PI/2);g.translate(0,b,0);return add(p,g,m,x,y,z)}
+function ctex(w,h,fn){const c=document.createElement('canvas');c.width=w;c.height=h;fn(c.getContext('2d'),w,h);
+  const t=new T.CanvasTexture(c);t.encoding=T.sRGBEncoding;t.anisotropy=AN;return t}
+function ov(p,tex,w,d,y,x,z){const m=new T.Mesh(new T.PlaneGeometry(w,d),new T.MeshStandardMaterial({map:tex,transparent:true,roughness:.5,polygonOffset:true,polygonOffsetFactor:-2,depthWrite:false}));
+  m.rotation.x=-Math.PI/2;m.position.set(x||0,y,z||0);p.add(m);return m}
+function ribbon(p,A,B,w,t,m){const d=B.clone().sub(A),L=d.length(),o=new T.Mesh(new T.BoxGeometry(L,t,w),m);
+  o.position.copy(A).add(B).multiplyScalar(.5);o.quaternion.setFromUnitVectors(V(1,0,0),d.normalize());p.add(o);return o}
+function glowSprite(hex,sz){const t=ctex(64,64,(c)=>{const g=c.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.35,'rgba(255,255,255,.35)');g.addColorStop(1,'rgba(255,255,255,0)');c.fillStyle=g;c.fillRect(0,0,64,64)});
+  const s=new T.Sprite(new T.SpriteMaterial({map:t,color:hex,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:0}));s.scale.set(sz,sz,1);return s}
+
+/* ---------- desk ---------- */
+{const t=ctex(1024,1024,(c,w,h)=>{c.fillStyle='#24413b';c.fillRect(0,0,w,h);c.strokeStyle='rgba(255,255,255,.12)';c.lineWidth=2;
+  for(let i=0;i<=20;i++){c.beginPath();c.moveTo(i*51.2,0);c.lineTo(i*51.2,h);c.moveTo(0,i*51.2);c.lineTo(w,i*51.2);c.stroke()}
+  c.strokeStyle='rgba(255,255,255,.28)';c.lineWidth=3;for(let i=0;i<=4;i++){c.beginPath();c.moveTo(i*256,0);c.lineTo(i*256,h);c.moveTo(0,i*256);c.lineTo(w,i*256);c.stroke()}});
+  t.wrapS=t.wrapT=T.RepeatWrapping;t.repeat.set(3,2.4);
+  const d=add(scene,new T.PlaneGeometry(72,56),M(0xffffff,{map:t,roughness:.85}),0,0,0);d.rotation.x=-Math.PI/2}
+
+/* ---------- arduino uno r3 ---------- */
+const AP=V(-7.5,.3,3.0),PT=.16,HT=.85;
+const AW=6.86,AD=5.34,hx=mm=>mm/10-AW/2;
+const APIN={};
+[['SCL',0],['SDA',1],['AREF',2],['GND',3],['D13',4],['D12',5],['D11',6],['D10',7],['D9',8],['D8',9]].forEach(([n,i])=>APIN[n]=[hx(17.5+i*2.54),-2.416]);
+for(let i=0;i<8;i++)APIN['D'+(7-i)]=[hx(43+i*2.54),-2.416];
+['IOREF','RESET','3V3','5V','GND1','GND2','VIN'].forEach((n,i)=>APIN[n]=[hx(30+(i+1)*2.54),2.416]);
+for(let i=0;i<6;i++)APIN['A'+i]=[hx(50.3+i*2.54),2.416];
+const apin=n=>V(AP.x+APIN[n][0],AP.y+PT+HT,AP.z+APIN[n][1]);
+const A=new T.Group();A.position.copy(AP);scene.add(A);
+const aled={};
+{
+  rbox(A,AW,PT,AD,.25,M(0x0a8892,{roughness:.38}),0,0,0,[[13.97,2.54],[15.24,50.8],[66.04,7.62],[66.04,35.56]].map(q=>[hx(q[0]*1)+0,AD/2-q[1]/10,.16]));
+  const px=x=>(x+AW/2)*200,pz=z=>(z+AD/2)*200;
+  ov(A,ctex(1372,1068,(c)=>{c.fillStyle='#f4f8f8';c.textAlign='center';c.font='500 22px Outfit,sans-serif';
+    const lab=(n,x,z)=>c.fillText(n,px(x),pz(z));
+    ['SCL','SDA','AREF','GND','13','12','~11','~10','~9','8'].forEach((n,i)=>lab(n,hx(17.5+i*2.54),-1.9));
+    ['7','~6','~5','4','~3','2','1','0'].forEach((n,i)=>lab(n,hx(43+i*2.54),-1.9));
+    ['IOREF','RESET','3V3','5V','GND','GND','VIN'].forEach((n,i)=>lab(n,hx(30+(i+1)*2.54),1.98));
+    for(let i=0;i<6;i++)lab('A'+i,hx(50.3+i*2.54),1.98);
+    c.font='600 26px Outfit,sans-serif';lab('DIGITAL (PWM~)',hx(41),-1.5);lab('ANALOG IN',hx(57),1.5);lab('POWER',hx(39),1.5);
+    c.font='700 64px Outfit,sans-serif';lab('UNO',-1.2,.55);c.font='600 40px Outfit,sans-serif';lab('ARDUINO',-1.2,1.1);
+    c.font='700 70px Outfit,sans-serif';lab('\u221e',-2.1,-.75);
+    c.font='500 20px Outfit,sans-serif';lab('L',1.9,-1.35);lab('TX',2.35,-1.35);lab('RX',2.8,-1.35);lab('ON',.9,-1.35);lab('RESET',-2.35,-1.55)}),AW,AD,PT+.003);
+  const hdr=(n,x0,z)=>{const cx=hx(x0)+(n-1)*.127;bx(A,n*.254,HT,.254,M(0x101012,{roughness:.4}),cx,PT+HT/2,z);
+    for(let i=0;i<n;i++)bx(A,.12,.012,.12,M(0x000000),hx(x0)+i*.254,PT+HT+.002,z)};
+  hdr(10,17.5,-2.416);hdr(8,43,-2.416);hdr(8,30,2.416);hdr(6,50.3,2.416);
+  // usb-b
+  bx(A,1.6,1.1,1.2,STEEL,-3.43,PT+.55,-.9);bx(A,.2,.7,.8,BLK,-4.2,PT+.55,-.9);
+  // dc jack
+  bx(A,1.4,1.1,.9,M(0x0c0c0e,{roughness:.35}),-3.33,PT+.55,1.65);cy(A,.22,.3,M(0x000000),-4.0,PT+.55,1.65,16).rotation.z=Math.PI/2;
+  // reset button
+  bx(A,.6,.3,.6,STEEL,-2.35,PT+.15,-1.9);cy(A,.18,.22,M(0xd83a3a,{roughness:.35}),-2.35,PT+.4,-1.9,16);
+  // electrolytic caps and regulator
+  [[-2.35,.55],[-2.35,-.25]].forEach(q=>{cy(A,.31,.5,M(0xc9ccd2,{metalness:.9,roughness:.3}),q[0],PT+.25,q[1],20);cy(A,.28,.02,M(0x2b2b33),q[0],PT+.51,q[1],20)});
+  bx(A,.7,.4,.5,BLK,-1.75,PT+.2,1.9);bx(A,.7,.05,.3,STEEL,-1.75,PT+.3,2.2);
+  // crystal and 16u2
+  rbox(A,1.1,.35,.45,.1,STEEL,-0.9,PT,-.2);bx(A,.55,.08,.55,BLK,-1.4,PT+.04,.9);
+  // atmega328p dip-28 on socket
+  bx(A,3.6,.3,.85,M(0x232327),.97,PT+.15,1.25);
+  const chip=bx(A,3.48,.4,.76,M(0x0d0d0f,{roughness:.35}),.97,PT+.5,1.25);
+  ov(A,ctex(512,128,(c)=>{c.fillStyle='#bfc5ca';c.font='600 34px DM Mono,monospace';c.fillText('ATMEGA328P-PU',50,52);c.font='500 22px DM Mono,monospace';c.fillText('ARDUINO  1G',50,92);c.beginPath();c.arc(22,95,9,0,7);c.fill()}),3.2,.8,PT+.702,.97,1.25);
+  for(let i=0;i<14;i++)[-1,1].forEach(s=>{bx(A,.07,.04,.18,STEEL,.97-1.62+i*.254*1,PT+.5,1.25+s*.46);bx(A,.07,.3,.04,STEEL,.97-1.62+i*.254,PT+.2,1.25+s*.5)});
+  // icsp
+  const icsp=(x,z,rot)=>{bx(A,rot?.76:.5,.25,rot?.5:.76,M(0x101012),x,PT+.125,z);for(let i=0;i<3;i++)for(let j=0;j<2;j++){const px2=rot?x-.254+i*.254:x+(j-.5)*.254,pz2=rot?z+(j-.5)*.254:z-.254+i*.254;bx(A,.06,.5,.06,GOLD,px2,PT+.35,pz2)}};
+  icsp(3.0,-.2,0);icsp(-2.9,-1.4,1);
+  // smd leds
+  [['L',1.9,-1.65,0xffa938],['TX',2.35,-1.65,0xffb347],['RX',2.8,-1.65,0xffb347],['ON',.9,-1.65,0x35e06a]].forEach(([n,x,z,c])=>{aled[n]=bx(A,.16,.07,.1,M(c,{emissive:c,emissiveIntensity:0}),x,PT+.035,z)});
+  // usb plug and cable
+  bx(A,1.0,.95,1.15,STEEL,-4.7,PT+.55,-.9);bx(A,1.3,.9,1.0,BLK,-5.6,PT+.55,-.9);
+}
+const apw=A.position;
+
+/* ---------- lcd 16x2 + i2c backpack ---------- */
+const LW=8.0,LD=3.6;
+const LCDG=new T.Group();LCDG.position.set(-.6,2.02,-3.4);LCDG.rotation.x=Math.PI/2-.3;scene.add(LCDG);
+const lcv=document.createElement('canvas');lcv.width=640;lcv.height=148;
+const ltex=new T.CanvasTexture(lcv);ltex.encoding=T.sRGBEncoding;ltex.anisotropy=AN;
+const LPIN=[];
+{
+  rbox(LCDG,LW,.16,LD,.12,M(0x1d7a3f,{roughness:.4}),0,-.16,0,[[-3.75,-1.5,.16],[3.75,-1.5,.16],[-3.75,1.5,.16],[3.75,1.5,.16]]);
+  rbox(LCDG,7.2,.5,3.0,.08,M(0x2a2c30,{metalness:.9,roughness:.35}),0,0,.05);
+  ov(LCDG,ctex(8,8,(c)=>{c.fillStyle='#0c0f14';c.fillRect(0,0,8,8)}),6.9,2.45,.505,0,.05);
+  ov(LCDG,ltex,6.45,1.42,.508,0,.05);
+  for(let i=0;i<16;i++){cy(LCDG,.05,.5,GOLD,-1.9*0-1.905+i*.254,-.1,-1.55,8)}
+  bx(LCDG,4.1,.16,1.3,M(0x16161a,{roughness:.4}),0,-.62,-1.1);
+  bx(LCDG,1.0,.12,.4,M(0x0d0d0f),.4,-.74,-1.1);bx(LCDG,.12,.1,.3,STEEL,.4,-.84,-1.1);
+  bx(LCDG,.55,.4,.55,M(0x2457c9,{roughness:.35}),-1.3,-.82,-1.0);cy(LCDG,.12,.05,GOLD,-1.3,-1.04,-1.0,12);
+  bx(LCDG,1.0,.28,.28,M(0x0d0d0f),-1.9,-.82,-1.5);
+  const hz=-.7;bx(LCDG,1.1,.26,.3,M(0x111114),1.5,-.8,hz);
+  for(let i=0;i<4;i++){LPIN.push(V(1.2+i*.254,-1.1,hz));cy(LCDG,.03,.5,GOLD,1.2+i*.254,-.78,hz,8)}
+  bx(LCDG,1.3,.1,.5,M(0x151518),0,-.2,-1.55);
+}
+const lstand=bx(scene,6,.18,2.0,BLK,-.6,.75,-4.6);lstand.rotation.x=-.9;
+bx(scene,6.4,.18,1.6,BLK,-.6,.09,-3.2);
+
+/* ---------- breadboard ---------- */
+const BBP=V(2.0,0,6.3),TOPY=.85;
+const RZ={a:-1.397,b:-1.143,c:-.889,d:-.635,e:-.381,f:.381,g:.635,h:.889,i:1.143,j:1.397};
+const hole=(c,r)=>V(BBP.x+(c-15.5)*.254,TOPY,BBP.z+RZ[r]);
+const railX=k=>(k+Math.floor(k/5)*.5-13)*.254;
+const rail=(k,minus)=>V(BBP.x+railX(k),TOPY,BBP.z+(minus?2.413:2.159));
+const nearK=c=>{const x=(c-15.5)*.254;let b=0,d=9;for(let k=0;k<25;k++){const e=Math.abs(railX(k)-x);if(e<d){d=e;b=k}}return b};
+const BB=new T.Group();BB.position.copy(BBP);scene.add(BB);
+{
+  rbox(BB,8.25,TOPY,5.5,.15,M(0xece8dc,{roughness:.5}),0,0,0,null,.05);
+  const bp=x=>(x+4.125)*160,bz=z=>(z+2.75)*160;
+  const hs=(c,x,z)=>{c.fillStyle='#bdb8a8';c.fillRect(bp(x)-10,bz(z)-10,20,20);c.fillStyle='#17171a';c.fillRect(bp(x)-6.5,bz(z)-6.5,13,13)};
+  ov(BB,ctex(1320,880,(c)=>{
+    c.fillStyle='#d6d1c2';c.fillRect(0,bz(-.2),1320,.4*160);c.fillStyle='rgba(0,0,0,.15)';c.fillRect(0,bz(-.2),1320,3);c.fillRect(0,bz(.2)-3,1320,3);
+    c.fillStyle='#d23b3b';c.fillRect(bp(-3.5),bz(1.99)-2,7,4);c.fillRect(bp(-3.4),bz(1.99)-2,6.8*160,4);
+    c.fillStyle='#2f64d6';c.fillRect(bp(-3.4),bz(2.583)-2,6.8*160,4);
+    for(let col=1;col<=30;col++)['a','b','c','d','e','f','g','h','i','j'].forEach(r=>hs(c,(col-15.5)*.254,RZ[r]));
+    for(let k=0;k<25;k++){hs(c,railX(k),2.159);hs(c,railX(k),2.413)}
+    c.fillStyle='#555';c.font='600 17px Outfit,sans-serif';c.textAlign='center';
+    [1,5,10,15,20,25,30].forEach(n=>{c.fillText(n,bp((n-15.5)*.254),bz(-1.72));c.fillText(n,bp((n-15.5)*.254),bz(1.72)+10)});
+    'abcde'.split('').forEach((r,i)=>c.fillText(r,bp(-3.95),bz(RZ[r])+6));'fghij'.split('').forEach(r=>c.fillText(r,bp(-3.95),bz(RZ[r])+6));
+    c.fillStyle='#d23b3b';c.font='700 22px Outfit,sans-serif';c.fillText('+',bp(-3.85),bz(2.159)+7);c.fillStyle='#2f64d6';c.fillText('\u2212',bp(-3.85),bz(2.413)+7)}),8.25,5.5,TOPY+.003);
+}
+
+/* ---------- small parts ---------- */
+function ledPart(hex,A_,B_){
+  const g=new T.Group(),mid=A_.clone().lerp(B_,.5);g.position.set(mid.x,TOPY,mid.z);scene.add(g);
+  const m=new T.MeshPhysicalMaterial({color:hex,transparent:true,opacity:.82,roughness:.1,clearcoat:1,clearcoatRoughness:.05,emissive:hex,emissiveIntensity:0});
+  cy(g,.31,.1,M(0xe6e6e6,{roughness:.4}),0,.06,0,28);cy(g,.25,.55,m,0,.38,0,28);
+  add(g,new T.SphereGeometry(.25,28,14,0,Math.PI*2,0,Math.PI/2),m,0,.655,0);
+  bx(g,.1,.42,.03,STEEL,-.06,.4,0);bx(g,.07,.3,.03,STEEL,.06,.36,0);
+  const dx=(B_.x-A_.x)/2;
+  [[-dx,.62],[dx,.34]].forEach(([x,l])=>{cy(g,.03,.2+l,STEEL,x,-.05+l/2-.1,0,8)});
+  const s=glowSprite(hex,2.4);s.position.y=.6;g.add(s);
+  return {g,m,s}}
+function resistor(A_,B_,bands,dir){
+  const g=new T.Group(),mid=A_.clone().lerp(B_,.5),L=A_.distanceTo(B_);g.position.set(mid.x,TOPY+.2,mid.z);scene.add(g);
+  const pr=[[0,-.31],[.1,-.3],[.145,-.24],[.115,-.17],[.115,.17],[.145,.24],[.1,.3],[0,.31]].map(p=>new T.Vector2(p[0],p[1]));
+  const lg=new T.LatheGeometry(pr,24);lg.rotateZ(Math.PI/2);add(g,lg,M(0xd8be86,{roughness:.45}));
+  [-.2,-.11,-.02,.17].forEach((x,i)=>{const b=cy(g,.12,.05,M(bands[i],{roughness:.4,metalness:i==3?.8:0}),x,0,0,20);b.rotation.z=Math.PI/2});
+  [-1,1].forEach(s=>{const lenH=L/2-.3,c=cy(g,.028,lenH,STEEL,s*(L/2+.3)/2,0,0,8);c.rotation.z=Math.PI/2;cy(g,.028,.62,STEEL,s*L/2,-.31,0,8)});
+  return g}
+function jwire(a,b,col,h,grp,sag){
+  const mid=a.clone().lerp(b,.5);mid.y=Math.max(a.y,b.y)+h;
+  const up=Math.min(.7,h*.6);
+  const cv_=new T.CatmullRomCurve3([a.clone().add(V(0,-.3,0)),a.clone().add(V(0,up,0)),a.clone().lerp(mid,.5).add(V(0,.1,0)),mid,b.clone().lerp(mid,.5).add(V(0,.1,0)),b.clone().add(V(0,up,0)),b.clone().add(V(0,-.3,0))]);
+  grp.add(new T.Mesh(new T.TubeGeometry(cv_,72,.055,10),M(col,{roughness:.35})));
+  [a,b].forEach(p=>{bx(grp,.07,.5,.07,STEEL,p.x,p.y-.05,p.z)})}
+function cable(pts,col,grp,r){grp.add(new T.Mesh(new T.TubeGeometry(new T.CatmullRomCurve3(pts),48,r||.05,8),M(col,{roughness:.4})))}
+function header(g,pos,n,cols){const w=n*.254;bx(g,w,.25,.254,M(0x111114),pos.x+(n-1)*.127,pos.y+.125,pos.z);for(let i=0;i<n;i++)bx(g,.064,.7,.064,GOLD,pos.x+i*.254,pos.y-.1,pos.z)}
+
+/* ---------- groups ---------- */
+const REAL=new T.Group(),SUBG=new T.Group(),WALL=new T.Group(),WR=new T.Group(),WS=new T.Group(),WC=new T.Group();
+scene.add(REAL,SUBG,WALL);WALL.add(WR,WS,WC);SUBG.visible=false;WS.visible=false;
+const WCOL={v5:0xd32f2f,gnd:0x1c1c20,a0:0x8a4fd1,a1:0xf2c200,sda:0x2b6fd6,scl:0xf28c00,d2:0x2e9e4f,d3:0xe05a9a};
+
+/* leds and resistors on the board */
+const GL=ledPart(0x34e07a,hole(10,'g'),hole(11,'g')),RL=ledPart(0xff4040,hole(19,'g'),hole(20,'g'));
+const R1=resistor(hole(6,'h'),hole(10,'h'),[0xc62828,0xc62828,0x6d3a14,0xd4af37]);
+const R2=resistor(hole(15,'h'),hole(19,'h'),[0xc62828,0xc62828,0x6d3a14,0xd4af37]);
+const RK=resistor(hole(24,'h'),hole(28,'h'),[0x6d3a14,0x111111,0xef7d00,0xd4af37]);RK.visible=false;
+
+/* common wiring */
+jwire(apin('D2'),hole(6,'j'),WCOL.d2,3.2,WC);
+jwire(apin('D3'),hole(15,'j'),WCOL.d3,4.2,WC);
+jwire(hole(11,'j'),rail(nearK(11),1),WCOL.gnd,.5,WC);
+jwire(hole(20,'j'),rail(nearK(20),1),WCOL.gnd,.5,WC);
+jwire(apin('5V'),rail(0,0),WCOL.v5,1.6,WC);
+jwire(apin('GND1'),rail(0,1),WCOL.gnd,1.2,WC);
+LCDG.updateMatrixWorld(true);
+const lp=LPIN.map(p=>LCDG.localToWorld(p.clone()));
+[[lp[0],WCOL.gnd,rail(3,1),null],[lp[1],WCOL.v5,rail(3,0),null],[lp[2],WCOL.sda,apin('A4'),null],[lp[3],WCOL.scl,apin('A5'),null]].forEach(([a,c,b],i)=>{
+  const mid=[a.clone(),V(a.x,a.y-.6,a.z-.4),V((a.x+b.x)/2,.9+i*.3,(a.z+b.z)/2),V(b.x,b.y+.7,b.z),b.clone().add(V(0,-.3,0))];cable(mid,c,WC,.05);bx(WC,.07,.5,.07,STEEL,b.x,b.y-.05,b.z)});
+
+/* real sensors: pulse sensor */
+const PP=V(10.0,.15,1.6);let pulseLed,pulseGlow;
+{const g=new T.Group();g.position.copy(PP);REAL.add(g);
+  const front=ctex(256,256,(c)=>{c.fillStyle='#121316';c.fillRect(0,0,256,256);c.strokeStyle='#e8eaee';c.lineWidth=7;c.beginPath();c.arc(128,128,112,0,7);c.stroke();
+    c.fillStyle='#e23b53';c.beginPath();c.moveTo(128,206);c.bezierCurveTo(40,150,52,70,102,76);c.bezierCurveTo(118,78,128,92,128,92);c.bezierCurveTo(128,92,138,78,154,76);c.bezierCurveTo(204,70,216,150,128,206);c.fill();
+    c.fillStyle='#d6a82a';c.beginPath();c.arc(128,38,9,0,7);c.fill()});
+  const disc=add(g,new T.CylinderGeometry(.8,.8,.3,40),[M(0x15161a,{roughness:.35}),M(0xffffff,{map:front,roughness:.35}),M(0x2a2a30)],0,0,0);
+  disc.rotation.y=0;
+  pulseLed=cy(g,.11,.04,M(0x7dff9a,{emissive:0x35ff6a,emissiveIntensity:.4}),0,.16,0,20);
+  pulseGlow=glowSprite(0x35ff6a,2.8);pulseGlow.position.y=.4;g.add(pulseGlow);
+  rbox(REAL,.9,.06,2.8,.05,M(0x2c2c32,{roughness:.9}),PP.x+1.9,0,PP.z-.2);
+  const hc=hole(25,'g');const hp=[hole(24,'g'),hole(25,'g'),hole(26,'g')];
+  header(REAL,V(hp[0].x,TOPY,hp[0].z),3);
+  [[0xd32f2f,-.14],[0x1c1c20,.14],[0x8a4fd1,0]].forEach(([c,o],i)=>{const e=hp[[2,1,0][i]];
+    cable([V(PP.x-.8,.2,PP.z+o*.6),V(PP.x-1.4,.12,PP.z+.9+o),V(7.3,.14,4.2+o),V(5.6,.16,6.2+o*.5),V(e.x+(i-1)*.0,TOPY+.62,e.z-.2),V(e.x,TOPY+.5,e.z)],c,REAL,.045)});
+  jwire(hole(24,'j'),apin('A0'),WCOL.a0,5.2,WR);jwire(hole(25,'j'),rail(nearK(25),0),WCOL.v5,.5,WR);jwire(hole(26,'j'),rail(nearK(26),1),WCOL.gnd,.5,WR);
+}
+/* real sensors: grove gsr */
+const GP=V(11.4,.08,7.6);
+{const g=new T.Group();g.position.copy(GP);REAL.add(g);
+  rbox(g,2.4,.16,2.0,.12,M(0xf1f0ec,{roughness:.4}),0,-.08,0);
+  ov(g,ctex(480,400,(c)=>{c.fillStyle='#2a2a2e';c.font='700 56px Outfit,sans-serif';c.fillText('GSR',150,90);c.font='500 26px Outfit,sans-serif';c.fillText('Grove',60,330);c.fillText('V1.2',320,330)}),2.4,2.0,.085);
+  bx(g,.9,.14,.4,M(0x0d0d0f),.1,.07,-.2);for(let i=0;i<7;i++)[-1,1].forEach(s=>bx(g,.04,.03,.1,STEEL,-.2+i*.1+.0,.05,-.2+s*.26));
+  bx(g,.55,.4,.55,M(0x2457c9,{roughness:.35}),.65,.2,.5);cy(g,.14,.04,GOLD,.65,.42,.5,14);
+  bx(g,.9,.5,.7,M(0xf4f4f0,{roughness:.35}),-1.0,.25,0);for(let i=0;i<4;i++)bx(g,.06,.2,.5,M(0x1a1a1a),-1.2+i*.0+0,.45,-.27+i*.18);
+  bx(g,.5,.25,.3,M(0x111114),.9,.12,-.65);
+  [-1,1].forEach((s,i)=>{const r=add(REAL,new T.TorusGeometry(.78,.12,14,40,Math.PI*1.85),M(0x2b2b30,{roughness:.8}),14.0,.82,GP.z+s*1.0);r.rotation.y=Math.PI/2;
+    bx(REAL,.12,.5,.5,STEEL,14.0,.2,GP.z+s*1.0).material=M(0xd5d9de,{metalness:1,roughness:.2});
+    cable([V(GP.x+1.2,.3,GP.z-.65+i*.1),V(12.6,.14,GP.z+s*.6),V(13.5,.16,GP.z+s*.95),V(14.0,.3,GP.z+s*1.0)],0x2a2a2e,REAL,.035)});
+  const gh=[27,28,29,30].map(c=>hole(c,'g'));header(REAL,V(gh[0].x,TOPY,gh[0].z),4);
+  [0xf2c200,0xf4f4f0,0xd32f2f,0x1c1c20].forEach((c,i)=>cable([V(GP.x-1.5,.3,GP.z-.3+i*.12),V(9.2,.14,GP.z-.6+i*.15),V(7.2,.16,7.5-i*.05),V(6.0,.4,7.4),V(gh[i].x,TOPY+.62,gh[i].z+.1),V(gh[i].x,TOPY+.5,gh[i].z)],c,REAL,.045));
+  jwire(hole(27,'j'),apin('A1'),WCOL.a1,6.2,WR);jwire(hole(29,'j'),rail(nearK(29),0),WCOL.v5,.5,WR);jwire(hole(30,'j'),rail(nearK(30),1),WCOL.gnd,.5,WR);
+}
+/* substitutes: force sensor + soil moisture */
+const FH=V(9.0,.03,3.4);
+{const g=new T.Group();SUBG.add(g);
+  const E1=hole(24,'g'),E2=hole(25,'g'),Em=E1.clone().lerp(E2,.5);Em.y=TOPY+.1;
+  const ang=Math.atan2(Em.z-FH.z,Em.x-FH.x);
+  const f=new T.Group();f.position.copy(FH);g.add(f);
+  const film=M(0xe9d9a1,{roughness:.35,metalness:0});
+  cy(f,.915,.03,film,0,0,0,40);cy(f,.8,.034,M(0xd9a441,{roughness:.4}),0,0,0,40);cy(f,.62,.04,M(0xefe3b8,{roughness:.4}),0,0,0,40);
+  ribbon(g,FH.clone(),Em.clone(),.6,.03,film);
+  [E1,E2].forEach(e=>bx(g,.064,.7,.064,GOLD,e.x,TOPY-.1,e.z));
+  jwire(hole(24,'j'),apin('A0'),WCOL.a0,5.2,WS);jwire(hole(25,'j'),rail(nearK(25),0),WCOL.v5,.5,WS);jwire(hole(28,'j'),rail(nearK(28),1),WCOL.gnd,.5,WS);
+  // soil module
+  const SP=V(10.8,.08,7.5),s=new T.Group();s.position.copy(SP);g.add(s);
+  rbox(s,3.0,.16,1.6,.1,M(0x1c4fb8,{roughness:.4}),0,-.08,0);
+  bx(s,.9,.14,.45,M(0x0d0d0f),.3,.07,-.2);bx(s,.5,.4,.5,M(0x2457c9,{roughness:.35}),-.5,.2,.4);cy(s,.12,.04,GOLD,-.5,.42,.4,14);
+  bx(s,.14,.06,.14,M(0x35e06a,{emissive:0x35e06a,emissiveIntensity:.8}),.9,.04,.5);
+  for(let i=0;i<4;i++){bx(s,.064,.7,.064,GOLD,-1.35,.1,-.6+i*.254);}
+  bx(s,.3,.25,1.02,M(0x111114),-1.35,.125,-.6+.381);
+  const pr=new T.Group();pr.position.set(13.4,.05,2.0);g.add(pr);
+  const pm=M(0x1a1a1d,{roughness:.35});
+  bx(pr,2.3,.1,2.2,pm,0,0,3.0);[-.7,.7].forEach(x=>bx(pr,.85,.1,7.6,pm,x,0,-1.7));
+  [-.7,.7].forEach(x=>{bx(pr,.1,.02,7.2,M(0xc9a24a,{metalness:1,roughness:.25}),x-.2,.06,-1.7);bx(pr,.1,.02,7.2,M(0xc9a24a,{metalness:1,roughness:.25}),x+.2,.06,-1.7)});
+  cable([V(pr.position.x,.14,pr.position.z+3.0),V(13.0,.15,6.0),V(12.6,.16,7.0),V(SP.x+1.1,.18,SP.z)],0x1c1c20,g,.04);
+  cable([V(pr.position.x+.2,.14,pr.position.z+3.0),V(13.2,.15,6.1),V(12.7,.16,7.1),V(SP.x+1.1,.18,SP.z-.2)],0xd32f2f,g,.04);
+  const sp=[0,1,2,3].map(i=>V(SP.x-1.35,.5,SP.z-.6+i*.254));
+  const dp=(a,b,c,h)=>{cable([a.clone(),V(a.x-.5,a.y+.3,a.z),V((a.x+b.x)/2,.9,(a.z+b.z)/2),V(b.x,b.y+.7,b.z),b.clone().add(V(0,-.3,0))],c,WS,.05);bx(WS,.07,.5,.07,STEEL,b.x,b.y-.05,b.z)};
+  dp(sp[0],rail(nearK(29),0),WCOL.v5);dp(sp[1],rail(nearK(30),1),WCOL.gnd);dp(sp[2],apin('A1'),WCOL.a1);
+}
+
+/* usb adapter */
+const UP=V(-15,0,5.6);
+{const g=new T.Group();g.position.copy(UP);scene.add(g);
+  rbox(g,3.6,2.0,3.6,.35,M(0xf3f3f1,{roughness:.35}),0,0,0);bx(g,1.4,.3,.9,STEEL,0,2.0,0);
+  cable([V(-6.3,.85,2.1),V(-8.5,.5,2.8),V(-11.5,.2,3.6),V(-13.2,.5,5.0),V(UP.x+1.8,.9,UP.z)],0x141416,scene,.17)}
+
+/* mark everything as shadow casters */
+scene.traverse(o=>{if(o.isMesh){o.castShadow=!o.material.transparent&&!Array.isArray(o.material)?true:!Array.isArray(o.material)?false:true;o.receiveShadow=true}});
+
+/* ---------- parts, markers, focus ---------- */
+const PI=[
+ [1,()=>'Arduino Uno R3','ATmega328P board. A0 pulse, A1 GSR, A4 and A5 LCD, D2 green LED, D3 red LED.',()=>V(AP.x,1.6,AP.z),12],
+ [2,()=>'LCD 16x2 I2C','Shows status and readings. SDA to A4, SCL to A5, with 5 V and GND.',()=>V(-.6,2.6,-3.4),11],
+ [3,()=>S.sub?'Force sensor (FSR)':'Pulse sensor','Reads the pulse optically with a green LED. Signal to A0, with 5 V and GND.',()=>S.sub?V(FH.x,.7,FH.z):V(PP.x,.9,PP.z),8],
+ [4,()=>S.sub?'Soil moisture sensor':'GSR sensor','Two finger electrodes read skin conductance. Signal to A1, with 5 V and GND.',()=>S.sub?V(11,.9,7.5):V(GP.x,.9,GP.z),9],
+ [5,()=>'Green LED + 220 \u03a9','Lights when the sensors have contact. D2 through 220 \u03a9 to GND.',()=>V(GL.g.position.x,1.6,GL.g.position.z),6],
+ [6,()=>'Red LED + 220 \u03a9','Lights when heart rate or GSR is elevated. D3 through 220 \u03a9 to GND.',()=>V(RL.g.position.x,1.6,RL.g.position.z),6],
+ [7,()=>'USB power','5 V power and programming from a computer or adapter.',()=>V(UP.x,2.6,UP.z),9],
+ [8,()=>'10 k\u03a9 resistor','Pull-down for the force sensor, from A0 to GND.',()=>V(hole(26,'h').x,1.2,hole(26,'h').z),6],
+ [9,()=>'Breadboard','Half-size, 30 columns. The rails carry 5 V and GND.',()=>V(BBP.x,.9,BBP.z),11]];
+const shown=()=>PI.filter(p=>p[0]!==8||S.sub);
+const info=id=>{const p=PI.find(q=>q[0]===id);return p};
+function legend(){
+  $('#lgd').innerHTML=shown().filter(p=>S.vw==='3d'||p[0]!==9).map(p=>`<li data-id="${p[0]}"><button data-id="${p[0]}"><i>${p[0]}</i>${p[1]()}</button></li>`).join('');
+  $('#m3').innerHTML=shown().map(p=>`<button class="mk3" data-id="${p[0]}" aria-label="${p[1]()}"><i>${p[0]}</i><span>${p[1]()}</span></button>`).join('');
+  document.querySelectorAll('.lgd button,.mk3').forEach(b=>b.onclick=()=>pick(+b.dataset.id));
+  document.querySelectorAll('#sv .mk').forEach(g=>g.onclick=()=>pick(+g.dataset.id));
+  mark()}
+function mark(){document.querySelectorAll('[data-id]').forEach(n=>n.classList.toggle('sel',+n.dataset.id===S.sel));
+  const p=info(S.sel);$('#info').innerHTML=p?`<b>${S.sel}. ${p[1]()}</b><p>${p[2]}</p>`:`<b>Pick a part</b><p>Click a number on the model or in the list.</p>`}
+const home={th:.35,ph:1.0,r:34,tx:0,ty:.6,tz:2.2};
+const Vw={...home};let Gw={...home},ease=0;
+function pick(id){S.sel=S.sel===id?0:id;mark();
+  if(S.vw==='3d'){if(S.sel){const p=info(id),a=p[3]();Gw={th:.45,ph:1.0,r:p[4],tx:a.x,ty:a.y*.5,tz:a.z}}else Gw={...home};ease=90}}
+const ring=glowSprite(0xffd23a,3.2);ring.material.opacity=0;scene.add(ring);
+
+/* orbit */
+const el=renderer&&renderer.domElement;let drag=null;
+if(el){
+  el.addEventListener('pointerdown',e=>{ease=0;drag=[e.clientX,e.clientY];el.setPointerCapture(e.pointerId)});
+  el.addEventListener('pointermove',e=>{if(!drag)return;const o=S.vw==='fig'?Fv:Vw;o.th-=(e.clientX-drag[0])*.008;o.ph=clamp(o.ph-(e.clientY-drag[1])*.006,.25,1.5);drag=[e.clientX,e.clientY]});
+  ['pointerup','pointercancel'].forEach(n=>el.addEventListener(n,()=>drag=null));
+  el.addEventListener('wheel',e=>{e.preventDefault();ease=0;const o=S.vw==='fig'?Fv:Vw;o.r=clamp(o.r+e.deltaY*.02,4,60)},{passive:false});
+  const stage=$('#stage');function size(){const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+  new ResizeObserver(size).observe(stage);size()}
+$('#rv').onclick=()=>{if(S.vw==='fig'){Gf={...Fhome[S.wm?1:0]}}else{S.sel=0;mark();Gw={...home}}ease=90};
+function place(){const st=$('#stage'),w=st.clientWidth,h=st.clientHeight;
+  document.querySelectorAll('.mk3').forEach(b=>{const p=info(+b.dataset.id);const v=p[3]().clone().project(cam);b.style.display=v.z>1?'none':'flex';b.style.transform=`translate(${(v.x*.5+.5)*w}px,${(-v.y*.5+.5)*h}px)`})}
+
+/* ---------- figure scene ---------- */
+const fig=new T.Scene(),FM=(c,o)=>M(c,Object.assign({flatShading:true,roughness:.75,metalness:.05},o));
+const ST=[["Marry before","you turn 30"],["Love completes","a woman"],["Parents expect","a wedding"],["Single is a","life half lived"]];
+const FX={},Fhome={1:{th:.3,ph:1.05,r:11.5,tx:.5,ty:-.2,tz:-.6},0:{th:.3,ph:1,r:8.2,tx:0,ty:0,tz:.1}};
+const Fv={...Fhome[1]};let Gf={...Fhome[1]};
+fig.environment=scene.environment;
+fig.add(new T.HemisphereLight(0xffffff,0x8a7f99,.9));
+{const sn=new T.DirectionalLight(0xffffff,.9);sn.position.set(4,8,6);fig.add(sn)}
+{
+  const Sp=(r,d)=>new T.IcosahedronGeometry(r,d===undefined?1:d),Cy2=(a,b,h,s)=>new T.CylinderGeometry(a,b,h,s||10),Bx=(w,h,d)=>new T.BoxGeometry(w,h,d);
+  add(fig,Cy2(8,8,.05,48),FM(matchMedia('(prefers-color-scheme:dark)').matches?0x2b2733:0xcfc8d6),0,-2.42,0);
+  add(fig,Bx(7.6,.2,3.8),FM(0xb99a7a),0,-.1,0);
+  [[-3.5,-1.7],[3.5,-1.7],[-3.5,1.7],[3.5,1.7]].forEach(p=>add(fig,Bx(.2,2.2,.2),FM(0x8d7358),p[0],-1.3,p[1]));
+  const Ar=new T.Group();Ar.position.set(-1.9,.06,.5);Ar.rotation.y=.2;fig.add(Ar);
+  add(Ar,Bx(1.9,.1,1.4),FM(0x0f7a9a),0,.05,0);
+  add(Ar,Bx(.5,.3,.45),FM(0xb8bcc2,{metalness:.5}),-.8,.2,-.4);
+  add(Ar,Bx(.4,.28,.4),FM(0x1d1d22),-.8,.19,.4);
+  add(Ar,Bx(.8,.08,.25),FM(0x1a1a1f),.2,.14,0);
+  add(Ar,Bx(1.5,.12,.1),FM(0x18181c),.1,.16,.6);
+  add(Ar,Bx(1.5,.12,.1),FM(0x18181c),.1,.16,-.6);
+  FX.ledL=add(Ar,Sp(.05),FM(0xff9a2e,{emissive:0xff7a00,emissiveIntensity:0}),.5,.14,-.35);
+  FX.ledOn=add(Ar,Sp(.05),FM(0x2ee06a,{emissive:0x18d050,emissiveIntensity:0}),.5,.14,-.2);
+  const LC=new T.Group();LC.position.set(-.2,.55,-1.2);LC.rotation.x=-.35;fig.add(LC);
+  add(LC,Bx(2.4,.95,.1),FM(0x1f4d7a),0,0,0);add(LC,Bx(2,.55,.04),FM(0x101214),0,0,.06);
+  FX.cv=document.createElement('canvas');FX.cv.width=320;FX.cv.height=80;
+  FX.tex=new T.CanvasTexture(FX.cv);FX.tex.encoding=T.sRGBEncoding;
+  add(LC,new T.PlaneGeometry(1.84,.46),new T.MeshBasicMaterial({map:FX.tex}),0,0,.085);
+  add(fig,Bx(2.4,.12,1.05),FM(0xeee9e0),.5,.06,.75);
+  add(fig,Bx(2.2,.02,.06),FM(0xd23b3b),.5,.13,.45);add(fig,Bx(2.2,.02,.06),FM(0x3b6ad2),.5,.13,1.05);
+  FX.ledG=add(fig,Cy2(.08,.08,.18),FM(0x2ee06a,{emissive:0x18d050,emissiveIntensity:0}),.2,.2,.75);
+  FX.ledR=add(fig,Cy2(.08,.08,.18),FM(0xff4a4a,{emissive:0xff1a1a,emissiveIntensity:0}),.7,.2,.75);
+  [.2,.7].forEach(x=>{const r=add(fig,Cy2(.03,.03,.3,6),FM(0xd8b878),x,.15,.55);r.rotation.x=Math.PI/2});
+  FX.R=new T.Group();FX.U=new T.Group();FX.R.position.set(1.8,0,-.9);FX.U.position.copy(FX.R.position);fig.add(FX.R,FX.U);
+  add(FX.R,Cy2(.19,.19,.04,14),FM(0x2f8f6a),-.1,.03,0);
+  FX.dot=add(FX.R,Cy2(.07,.07,.04),FM(0xff3030,{emissive:0xff0000,emissiveIntensity:.3}),-.1,.07,0);
+  add(FX.R,Bx(.9,.05,.5),FM(0x34343c),.75,.03,0);
+  add(FX.R,Cy2(.1,.1,.08),FM(0xc9ced4,{metalness:.6}),.58,.08,0);add(FX.R,Cy2(.1,.1,.08),FM(0xc9ced4,{metalness:.6}),.92,.08,0);
+  FX.pad=add(FX.U,Cy2(.24,.24,.03,16),FM(0xe0902a),-.1,.03,0);
+  add(FX.U,Cy2(.14,.14,.035,16),FM(0x222226),-.1,.035,0);
+  add(FX.U,Bx(.12,.01,.7),FM(0x888890),-.1,.02,.5);
+  add(FX.U,Bx(.5,.04,.4),FM(0x2d6a3a),.8,.03,.35);
+  add(FX.U,Bx(.12,.02,.9),FM(0x3a8a4a),.7,.02,-.2);add(FX.U,Bx(.12,.02,.9),FM(0x3a8a4a),.9,.02,-.2);
+  const rk2=add(FX.U,Cy2(.03,.03,.3,6),FM(0xd8b878),.35,.04,.55);rk2.rotation.z=Math.PI/2;
+  FX.U.visible=false;
+  [[0xf0a020,0],[0x3b8ee6,.1]].forEach(w=>{
+    const c=new T.CatmullRomCurve3([V(1.8,.05,-.65),V(1.5,.03,1.5+w[1]),V(-.5,.03,1.65+w[1]),V(-1.75,.2,1.2)]);
+    fig.add(new T.Mesh(new T.TubeGeometry(c,30,.025,6),FM(w[0])))});
+  const W=FX.W=new T.Group();fig.add(W);
+  const px=2.7,pz=-2.5,skin=FX.skin=FM(0xe8b99a),blouse=FM(0x8a3f6d),hair=FM(0x2a1a22);
+  const limb2=(a,b,r,m)=>{const d=new T.Vector3().subVectors(b,a),L=d.length(),o=new T.Mesh(Cy2(r*.8,r,L,6),m);o.position.copy(a).add(b).multiplyScalar(.5);o.quaternion.setFromUnitVectors(V(0,1,0),d.normalize());W.add(o)};
+  add(W,Bx(1.3,.1,1.2),FM(0x5a5266),px,-1,pz+.1);add(W,Bx(1.3,1.5,.1),FM(0x5a5266),px,-.2,pz-.65);
+  add(W,Cy2(.5,.8,.7,6),FM(0x3d3550),px,-.8,pz+.1);
+  [-.25,.25].forEach(x=>{add(W,Cy2(.11,.1,1.4,6),skin,px+x,-1.7,pz+.55);add(W,Bx(.24,.12,.4),FM(0x2a2430),px+x,-2.35,pz+.7)});
+  add(W,Cy2(.42,.5,1.35,6),blouse,px,-.2,pz);add(W,Cy2(.12,.14,.25,6),skin,px,.55,pz);
+  const head=FX.head=new T.Group();head.position.set(px,1.02,pz);W.add(head);
+  add(head,Sp(.34),skin,0,0,0);add(head,Sp(.37),hair,0,.05,-.07);add(head,Sp(.14),hair,0,.4,-.2);
+  const eM=FM(0x1a1216);
+  FX.eyes=[-.12,.12].map(x=>add(head,Sp(.045,0),eM,x,.03,.31));
+  FX.brows=[-.12,.12].map(x=>add(head,Bx(.15,.03,.03),eM,x,.14,.31));
+  FX.mouth=add(head,new T.TorusGeometry(.08,.02,5,10,Math.PI),FM(0x9a3a4a),0,-.1,.325);FX.mouth.rotation.z=Math.PI;
+  limb2(V(px-.5,.25,pz),V(px-.7,-.25,-2.15),.12,blouse);limb2(V(px-.7,-.25,-2.15),V(1.85,.14,-.9),.1,skin);
+  limb2(V(px+.5,.25,pz),V(px+.75,-.3,-2.15),.12,blouse);limb2(V(px+.75,-.3,-2.15),V(3.2,.14,-1.3),.1,skin);
+  add(W,Sp(.13),skin,1.85,.14,-.9);add(W,Sp(.13),skin,3.2,.14,-1.3);
+  FX.heart=add(W,Sp(.1),FM(0xe0334e,{emissive:0xc01030,emissiveIntensity:.3}),px-.15,.1,pz+.46);
+  FX.drops=[];
+  for(let i=0;i<14;i++){const d=add(head,Sp(.04,0),new T.MeshStandardMaterial({color:0x7fd0ff,transparent:true,opacity:.9,flatShading:true}),0,0,0);
+    d.userData={x:(i%7-3)*.08,ph:i/14,y0:.2+(i%2)*.06};FX.drops.push(d)}
+}
+let flk='';
+function flcd(d){
+  let a='',b='';
+  if(!S.on){}else if(!S.ct){a='NO SIGNAL';b='Place finger'}
+  else if(S.ph==='exp'&&Math.floor(S.t/2.5)%2===0){a=ST[S.st][0];b=ST[S.st][1]}
+  else{a=S.ph==='exp'?'Exposure':'Baseline';b='HR '+d.bpm+(S.sub?' SM ':' GSR ')+(S.sub?Math.round(d.gsr*RAW):d.gsr.toFixed(1))}
+  const key=S.on+a+b;if(key===flk)return;flk=key;
+  const c=FX.cv.getContext('2d');c.fillStyle=S.on?'#a8d98a':'#1f2a22';c.fillRect(0,0,320,80);
+  if(S.on){c.fillStyle='#1d3a1a';c.font='bold 30px "DM Mono",monospace';c.textAlign='center';c.textBaseline='middle';
+    [a,b].forEach((s,r)=>s.slice(0,16).split('').forEach((ch,i)=>c.fillText(ch,i*20+10,r*40+21)))}
+  FX.tex.needsUpdate=true}
+const skinA=new T.Color(0xe8b99a),skinB=new T.Color(0xe5857c);
+function figFrame(d,hot){
+  if(ease>0){ease--;['th','ph','r','tx','ty','tz'].forEach(k=>Fv[k]+=(Gf[k]-Fv[k])*.12)}
+  cam.position.set(Fv.tx+Fv.r*Math.sin(Fv.ph)*Math.sin(Fv.th),Fv.ty+Fv.r*Math.cos(Fv.ph),Fv.tz+Fv.r*Math.sin(Fv.ph)*Math.cos(Fv.th));
+  cam.lookAt(Fv.tx,Fv.ty,Fv.tz);
+  FX.W.visible=!!S.wm;
+  FX.skin.color.copy(skinA).lerp(skinB,clamp((S.sw-8)/92,0,1)*.8);
+  const n=Math.round(S.sw/100*14);
+  FX.drops.forEach((o,i)=>{o.visible=i<n&&S.sw>12;const f=calm?.5:(S.t*.45+o.userData.ph)%1;
+    o.position.set(o.userData.x*(1+i%3*.5),o.userData.y0-f*.5,.31-f*.02);o.scale.setScalar(.6+f*.6)});
+  const ix=S.ix,cu=clamp(.8-2.2*ix,-1,.8);
+  FX.mouth.scale.y=Math.abs(cu)<.1?.1:cu;
+  FX.brows.forEach((b,i)=>{b.rotation.z=(i?-1:1)*ix*.55;b.position.y=.14+ix*.03});
+  FX.eyes.forEach(e=>e.scale.y=1+ix*.5);FX.head.rotation.x=ix*.1;
+  FX.heart.scale.setScalar(1+S.fl*.5);
+  FX.ledL.material.emissiveIntensity=S.on?S.fl*2:0;FX.ledOn.material.emissiveIntensity=S.on?1.5:0;
+  FX.ledG.material.emissiveIntensity=d.ok?1.4:0;
+  FX.ledR.material.emissiveIntensity=hot?(calm||Math.floor(S.t*3)%2?1.6:.3):0;
+  FX.dot.material.emissiveIntensity=S.on?.3+S.fl*1.5:0;
+  const pp=1+S.fl*.1*(S.on&&S.ct?1:0);FX.pad.scale.set(pp,1,pp);
+  flcd(d);renderer.render(fig,cam)}
+
+/* ---------- schematic ---------- */
+function sv(){
+  const s=S.sub;
+  const w=(d,k)=>`<path class="w" d="${d}"/>`+(k?`<path class="f" data-k="${k}" d="${d}"/>`:'');
+  const dot=(x,y)=>`<circle cx="${x}" cy="${y}" r="4" style="fill:var(--wire)"/>`;
+  const gnd=(x,y)=>`<path class="w" d="M${x} ${y}V${y+8}M${x-10} ${y+8}H${x+10}M${x-6} ${y+13}H${x+6}M${x-2} ${y+18}H${x+2}"/>`;
+  const mk=(id,x,y)=>`<g class="mk" data-id="${id}" transform="translate(${x} ${y})"><circle r="11"/><text>${id}</text></g>`;
+  const pin=(x,y,t,a)=>`<text x="${x}" y="${y+4}" text-anchor="${a}">${t}</text>`;
+  const led=(y,c,id)=>w(`M290 ${y}H250M190 ${y}H160M130 ${y}H80`,id)+`<rect class="blk" x="190" y="${y-8}" width="60" height="16"/><text x="220" y="${y-14}" text-anchor="middle">220 \u03a9</text><path id="${id==='g'?'sg':'sr'}" d="M160 ${y-14}V${y+14}L132 ${y}Z" style="fill:var(--${c});fill-opacity:.1;stroke:var(--wire);stroke-width:2"/><path class="w" d="M130 ${y-14}V${y+14}"/>`;
+  let o=`<rect class="blk" x="290" y="90" width="180" height="330" rx="8"/><text class="ttl" x="380" y="122" text-anchor="middle">Arduino Uno R3</text>`;
+  o+=pin(298,170,'D2','start')+pin(298,230,'D3','start')+pin(298,330,'A4/SDA','start')+pin(298,370,'A5/SCL','start');
+  o+=pin(462,170,'A0','end')+pin(462,250,'A1','end')+pin(462,340,'5V','end')+pin(462,390,'GND','end');
+  o+=`<rect class="blk" x="345" y="36" width="70" height="34" rx="4"/><text x="380" y="57" text-anchor="middle">USB 5V</text>`+w('M380 70V90','on');
+  o+=led(170,'grn','g')+led(230,'red','r')+w('M80 170V480')+dot(80,230)+gnd(80,480);
+  o+=`<rect class="blk" x="100" y="300" width="135" height="100" rx="4"/><text class="ttl" x="175" y="292" text-anchor="middle">LCD 16x2 I2C</text><rect x="108" y="312" width="92" height="34" rx="2" style="fill:var(--s2);stroke:var(--wire)"/><text id="sl1" x="112" y="326" style="font-size:10px"></text><text id="sl2" x="112" y="340" style="font-size:10px"></text>`;
+  o+=pin(229,330,'SDA','end')+pin(229,370,'SCL','end')+w('M290 330H235','on')+w('M290 370H235','on');
+  o+=gnd(150,400)+`<path class="w" d="M200 400V414"/><text class="net" x="200" y="428" text-anchor="middle">5V</text>`;
+  if(!s){
+    o+=`<rect class="blk" x="560" y="120" width="140" height="100" rx="6"/><text class="ttl" x="630" y="112" text-anchor="middle">Pulse sensor</text>`+pin(568,150,'SIG','start')+pin(568,170,'+','start')+pin(568,190,'\u2212','start');
+    o+=w('M470 170H510V150H560','ok')+`<path class="w" d="M560 170H546M560 190H546"/><text class="net" x="540" y="174" text-anchor="end">5V</text><text class="net" x="540" y="194" text-anchor="end">GND</text>`;
+  }else{
+    o+=w('M470 170H600','ok')+dot(600,170)+`<text class="net" x="600" y="110" text-anchor="middle">5V</text>`+w('M600 116V136')+`<rect class="blk" x="592" y="136" width="16" height="30"/><path class="w" d="M586 160L614 142"/><text x="618" y="156">FSR</text>`+w('M600 170V182')+`<rect class="blk" x="592" y="182" width="16" height="34"/><text class="net" x="584" y="204" text-anchor="end">10 k\u03a9</text>`+w('M600 216V228')+gnd(600,228);
+  }
+  o+=`<text id="svh" x="655" y="262" text-anchor="middle" style="fill:var(--hr)"></text>`;
+  o+=`<rect class="blk" x="560" y="300" width="140" height="90" rx="6"/><text class="ttl" x="630" y="292" text-anchor="middle">${s?'Soil moisture':'GSR sensor'}</text>`+pin(568,320,s?'AO':'SIG','start')+pin(568,340,'+','start')+pin(568,360,'\u2212','start');
+  o+=w('M470 250H510V320H560','ok')+`<path class="w" d="M560 340H546M560 360H546"/><text class="net" x="540" y="344" text-anchor="end">5V</text><text class="net" x="540" y="364" text-anchor="end">GND</text>`;
+  o+=`<text id="svg" x="630" y="414" text-anchor="middle" style="fill:var(--gsr)"></text>`;
+  o+=w('M470 340H490')+`<text class="net" x="494" y="344">5V</text>`+w('M470 390H490')+`<text class="net" x="494" y="394">GND</text>`;
+  o+=mk(1,290,90)+mk(2,100,300)+mk(3,s?574:560,s?150:120)+mk(4,560,300)+mk(5,160,138)+mk(6,160,258)+mk(7,345,36)+(s?mk(8,628,182):'');
+  $('#sv').innerHTML=o;lk=''}
+
+/* ---------- model ---------- */
+const stressIx=(b,g)=>.55*clamp((b-B0)/30,0,1)+.45*clamp((g-G0)/G0/2.5,0,1);
+function model(dt){
+  const x=S.ph==='exp'?S.x:.6,tb=68+x*3.4,tg=1.4+x*.42,ts=Math.min(100,(tg-1.4)/4.2*100+2),k=t=>1-Math.exp(-dt/t);
+  S.bpm+=(tb-S.bpm)*k(2.5);S.gsr+=(tg-S.gsr)*k(4);S.sw+=(ts-S.sw)*k(6);S.ix+=(stressIx(S.bpm,S.gsr)-S.ix)*k(1.2);
+  const b=S.beat;S.beat+=dt*S.bpm/60;if(Math.floor(S.beat)>Math.floor(b))S.fl=1;S.fl=Math.max(0,S.fl-dt*5)}
+function disp(){const ok=S.on&&S.ct,n=Math.sin(S.t*3.1)*.8+Math.sin(S.t*7.3)*.4;
+  return{ok,bpm:ok?Math.round(S.bpm+n):0,gsr:ok?S.gsr+.03*Math.sin(S.t*5):0}}
+const rating=()=>Math.round(1+9*S.ix);
+const mood=r=>r<=2?'Calm':r<=4?'Neutral':r<=7?'Uneasy':'Stressed';
+const gv=g=>S.sub?String(Math.round(g*RAW)):g.toFixed(2);
+
+let lk='';
+function lcd(d){
+  let a='',b='';const r=rating();
+  if(!S.on){}else if(!S.ct){a='NO SIGNAL';b='Place finger'}
+  else{a=(S.ph==='exp'?S.x:0)<=1?'Resting':'Stress '+r+'/10 ';b='HR '+d.bpm+(S.sub?' SM ':' GSR ')+(S.sub?Math.round(d.gsr*RAW):d.gsr.toFixed(1))}
+  const key=S.on+a+b;if(key===lk)return;lk=key;
+  const c=lcv.getContext('2d');c.fillStyle=S.on?'#2a64d8':'#7e8a86';c.fillRect(0,0,640,148);
+  for(let r_=0;r_<2;r_++)for(let i=0;i<16;i++){c.fillStyle=S.on?'#2459c4':'#76827e';c.fillRect(i*40+3,r_*74+5,34,64)}
+  if(S.on){c.fillStyle='#eef5ff';c.font='bold 52px "DM Mono",monospace';c.textAlign='center';c.textBaseline='middle';
+    [a,b].forEach((s,r_)=>s.slice(0,16).split('').forEach((ch,i)=>c.fillText(ch,i*40+20,r_*74+38)))}
+  ltex.needsUpdate=true;
+  if($('#sl1')){$('#sl1').textContent=a;$('#sl2').textContent=b}}
+
+/* ---------- frame ---------- */
+let last=performance.now();
+function tick(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;S.t+=dt;model(dt);
+  const d=disp(),hot=d.ok&&(d.bpm>85||d.gsr>3),r=rating();lcd(d);
+  if(S.vw==='3d'&&renderer){
+    if(ease>0){ease--;['th','ph','r','tx','ty','tz'].forEach(k=>Vw[k]+=(Gw[k]-Vw[k])*.1)}
+    cam.position.set(Vw.tx+Vw.r*Math.sin(Vw.ph)*Math.sin(Vw.th),Vw.ty+Vw.r*Math.cos(Vw.ph),Vw.tz+Vw.r*Math.sin(Vw.ph)*Math.cos(Vw.th));
+    cam.lookAt(Vw.tx,Vw.ty,Vw.tz);
+    const blink=calm||Math.floor(S.t*3)%2;
+    GL.m.emissiveIntensity=d.ok?1.6:0;GL.s.material.opacity=d.ok?.7:0;
+    const rl=hot&&blink;RL.m.emissiveIntensity=rl?1.8:0;RL.s.material.opacity=rl?.8:0;
+    pulseLed.material.emissiveIntensity=S.on?.5+S.fl*2.5:0;pulseGlow.material.opacity=S.on?.15+S.fl*.6:0;
+    aled.ON.material.emissiveIntensity=S.on?2:0;aled.L.material.emissiveIntensity=S.on?S.fl*2.2:0;
+    aled.TX.material.emissiveIntensity=S.on&&S.fl>.5?1.5:0;aled.RX.material.emissiveIntensity=0;
+    const p=S.sel&&info(S.sel);
+    if(p){const a=p[3]();ring.position.set(a.x,Math.max(.6,a.y*.6),a.z);const k=3+Math.sin(S.t*4)*.4;ring.scale.set(k*(Vw.r/20+.5),k*(Vw.r/20+.5),1);ring.material.opacity=.5}else ring.material.opacity=0;
+    WALL.visible=$('#wr').checked;
+    renderer.render(scene,cam);place();
+  }else if(S.vw==='fig'&&renderer){figFrame(d,hot)
+  }else if(S.vw==='2d'){
+    document.querySelectorAll('.f').forEach(p=>{const k=p.dataset.k;p.style.opacity=(k==='on'?S.on:k==='ok'?d.ok:k==='g'?d.ok:k==='r'?hot:0)?1:0});
+    $('#sg').style.fillOpacity=d.ok?.9:.1;$('#sr').style.fillOpacity=hot?.9:.1;
+    $('#svh').textContent=d.ok?d.bpm+' bpm':'';$('#svg').textContent=d.ok?gv(d.gsr)+(S.sub?'':' \u00b5S'):''}
+  $('#vh').textContent=d.ok?d.bpm+' bpm':'--';
+  $('#vg').textContent=d.ok?gv(d.gsr)+(S.sub?'':' \u00b5S'):'--';
+  $('#bh').style.width=d.ok?clamp((d.bpm-50)/70*100,0,100)+'%':'0';
+  $('#bg').style.width=d.ok?clamp(d.gsr/6*100,0,100)+'%':'0';
+  $('#bs').style.width=S.sw.toFixed(1)+'%';$('#vs').textContent=Math.round(S.sw)+'%';
+  $('#bx').style.width=d.ok?(r*10)+'%':'0';
+  $('#vx').textContent=d.ok?r+'/10 '+mood(r):'--';
+  requestAnimationFrame(tick)}
+
+/* ---------- controls ---------- */
+$('#pw').onchange=e=>S.on=+e.target.checked;
+$('#ft').onchange=e=>S.ct=+e.target.checked;
+$('#sb').onchange=e=>{S.sub=+e.target.checked;FX.R.visible=!S.sub;FX.U.visible=!!S.sub;flk='';REAL.visible=!S.sub;SUBG.visible=!!S.sub;WR.visible=!S.sub;WS.visible=!!S.sub;RK.visible=!!S.sub;
+  $('#gl').textContent=S.sub?'Soil':'GSR';if(S.sel===8&&!S.sub)S.sel=0;sv();legend()};
+$('#nm').onchange=e=>$('#m3').classList.toggle('nn',!e.target.checked);
+$('#rc').oninput=e=>{S.x=+e.target.value;$('#rco').textContent=S.x};
+$('#wm').onchange=e=>{S.wm=+e.target.checked;Gf={...Fhome[S.wm?1:0]};ease=70};
+function setPh(p){S.ph=p;$('#pb').setAttribute('aria-pressed',p==='base');$('#pe').setAttribute('aria-pressed',p==='exp')}
+$('#pb').onclick=()=>setPh('base');$('#pe').onclick=()=>setPh('exp');
+$('#nx').onclick=()=>{S.st=(S.st+1)%ST.length;setPh('exp');S.t=Math.ceil(S.t/5)*5};
+$('#vw').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  S.vw=b.dataset.v;const v=S.vw,g=v==='3d',fg=v==='fig';ease=0;
+  document.querySelectorAll('#vw button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  $('#v3').hidden=v==='2d'||!renderer;$('#v2').hidden=v!=='2d';$('#m3').hidden=!g;$('#hint').hidden=v==='2d';$('#rv').hidden=v==='2d';
+  $('#scard').hidden=!fg;$('#pcard').hidden=fg;$('#info').hidden=fg;
+  ['#nsw','#wsw'].forEach(x=>$(x).classList.toggle('dis',!g));$('#wmsw').classList.toggle('dis',!fg);legend();lk='';flk=''};
+if(!renderer){S.vw='2d';$('#v3').hidden=true;$('#v2').hidden=false;$('#vw').hidden=true;$('#rv').hidden=true;$('#hint').hidden=true}
+sv();legend();lcd(disp());requestAnimationFrame(tick);
+</script>
+</body>
+</html>
